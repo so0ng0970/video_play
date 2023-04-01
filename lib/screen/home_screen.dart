@@ -57,7 +57,7 @@ class _AppName extends StatelessWidget {
           style: textStyle,
         ),
         Text(
-          'PLAYER',
+          'PLAYER ',
           style: textStyle.copyWith(
             fontWeight: FontWeight.w900,
             fontStyle: FontStyle.italic,
