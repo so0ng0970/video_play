@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_play_project/screen/home_screen.dart';
+import 'package:video_play_project/review/screen/review_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +11,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const HomeScreen(),
+    return const MaterialApp(
+      home: ReviewScreen(),
     );
   }
 }
