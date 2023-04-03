@@ -14,6 +14,7 @@ class CustomReview extends StatefulWidget {
 
 class _CustomReviewState extends State<CustomReview> {
   VideoPlayerController? videoController;
+  Duration currentPosition = const Duration();
 
   @override
   void initState() {
@@ -27,6 +28,14 @@ class _CustomReviewState extends State<CustomReview> {
       File(widget.video.path),
     );
     await videoController!.initialize();
+    videoController!.addListener(() async {
+      final currentPosition = videoController!.value.position;
+
+      setState(() {
+        this.currentPosition = currentPosition;
+      });
+    });
+
     setState(() {});
   }
 
@@ -49,21 +58,19 @@ class _CustomReviewState extends State<CustomReview> {
               onReversePressed: onReversePressed,
               onforwardPressed: onforwardPressed,
             ),
-            Positioned(
-              right: 2,
-              child: IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.photo_camera),
-                iconSize: 30.0,
-                color: Colors.white,
-              ),
-            )
+            _NewVideo(
+              onPressed: onNewVideoPressed,
+            ),
+            _SliderBottom(
+                currentPosition: currentPosition,
+                videoController: videoController)
           ],
         ),
       ),
     );
   }
 
+  void onNewVideoPressed() {}
   void onReversePressed() {
     final currentPositon = videoController!.value.position;
     Duration position = const Duration();
@@ -99,6 +106,75 @@ class _CustomReviewState extends State<CustomReview> {
     // 어떤 위치로 실행할지 정할 수 있음
 
     videoController!.seekTo(position);
+  }
+}
+
+class _SliderBottom extends StatelessWidget {
+  const _SliderBottom({
+    Key? key,
+    required this.currentPosition,
+    required this.videoController,
+  }) : super(key: key);
+
+  final Duration currentPosition;
+  final VideoPlayerController? videoController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          children: [
+            Text(
+              '${currentPosition.inMinutes}:${(currentPosition.inSeconds % 60).toString().padLeft(2, '0')}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            Expanded(
+              child: Slider(
+                  max: videoController!.value.duration.inSeconds.toDouble(),
+                  min: 0,
+                  value: currentPosition.inSeconds.toDouble(),
+                  onChanged: (double val) {
+                    videoController!.seekTo(
+                      Duration(
+                        seconds: val.toInt(),
+                      ),
+                    );
+                  }),
+            ),
+            Text(
+              '${videoController!.value.duration.inMinutes}:${(videoController!.value.duration.inSeconds % 60).toString().padLeft(2, '0')}',
+              style: const TextStyle(color: Colors.white),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NewVideo extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _NewVideo({
+    required this.onPressed,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      right: 2,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: const Icon(Icons.photo_camera),
+        iconSize: 30.0,
+        color: Colors.white,
+      ),
+    );
   }
 }
 
