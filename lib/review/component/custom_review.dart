@@ -6,7 +6,10 @@ import 'package:video_player/video_player.dart';
 
 class CustomReview extends StatefulWidget {
   XFile video;
-  CustomReview({required this.video, super.key});
+  final VoidCallback onNewVideoPressed;
+
+  CustomReview(
+      {required this.onNewVideoPressed, required this.video, super.key});
 
   @override
   State<CustomReview> createState() => _CustomReviewState();
@@ -15,6 +18,7 @@ class CustomReview extends StatefulWidget {
 class _CustomReviewState extends State<CustomReview> {
   VideoPlayerController? videoController;
   Duration currentPosition = const Duration();
+  bool showCotrolls = false;
 
   @override
   void initState() {
@@ -24,6 +28,7 @@ class _CustomReviewState extends State<CustomReview> {
   }
 
   initializeController() async {
+    currentPosition = const Duration();
     videoController = VideoPlayerController.file(
       File(widget.video.path),
     );
@@ -40,6 +45,14 @@ class _CustomReviewState extends State<CustomReview> {
   }
 
   @override
+  void didUpdateWidget(covariant CustomReview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.video.path != widget.video.path) {
+      initializeController();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (videoController == null) {
       return const CircularProgressIndicator(
@@ -49,28 +62,45 @@ class _CustomReviewState extends State<CustomReview> {
     return Center(
       child: AspectRatio(
         aspectRatio: videoController!.value.aspectRatio,
-        child: Stack(
-          children: [
-            VideoPlayer(videoController!),
-            _Controlls(
-              isPlaying: videoController!.value.isPlaying,
-              onPlayPressed: onPlayPressed,
-              onReversePressed: onReversePressed,
-              onforwardPressed: onforwardPressed,
-            ),
-            _NewVideo(
-              onPressed: onNewVideoPressed,
-            ),
-            _SliderBottom(
-                currentPosition: currentPosition,
-                videoController: videoController)
-          ],
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              showCotrolls = !showCotrolls;
+            });
+          },
+          child: Stack(
+            children: [
+              VideoPlayer(videoController!),
+              if (showCotrolls)
+                _Controlls(
+                  isPlaying: videoController!.value.isPlaying,
+                  onPlayPressed: onPlayPressed,
+                  onReversePressed: onReversePressed,
+                  onforwardPressed: onforwardPressed,
+                ),
+              if (showCotrolls)
+                _NewVideo(
+                  onPressed: widget.onNewVideoPressed,
+                ),
+              _SliderBottom(
+                  onSlider: onSlideChanged,
+                  currentPosition: currentPosition,
+                  videoController: videoController)
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void onNewVideoPressed() {}
+  void onSlideChanged(double val) {
+    videoController!.seekTo(
+      Duration(
+        seconds: val.toInt(),
+      ),
+    );
+  }
+
   void onReversePressed() {
     final currentPositon = videoController!.value.position;
     Duration position = const Duration();
@@ -112,12 +142,14 @@ class _CustomReviewState extends State<CustomReview> {
 class _SliderBottom extends StatelessWidget {
   const _SliderBottom({
     Key? key,
+    required this.onSlider,
     required this.currentPosition,
     required this.videoController,
   }) : super(key: key);
 
   final Duration currentPosition;
   final VideoPlayerController? videoController;
+  final ValueChanged<double> onSlider;
 
   @override
   Widget build(BuildContext context) {
@@ -138,13 +170,7 @@ class _SliderBottom extends StatelessWidget {
                   max: videoController!.value.duration.inSeconds.toDouble(),
                   min: 0,
                   value: currentPosition.inSeconds.toDouble(),
-                  onChanged: (double val) {
-                    videoController!.seekTo(
-                      Duration(
-                        seconds: val.toInt(),
-                      ),
-                    );
-                  }),
+                  onChanged: onSlider),
             ),
             Text(
               '${videoController!.value.duration.inMinutes}:${(videoController!.value.duration.inSeconds % 60).toString().padLeft(2, '0')}',

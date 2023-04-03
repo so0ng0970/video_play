@@ -20,6 +20,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   Widget renderVideo() {
     return CustomReview(
+      onNewVideoPressed: onNewVideoPressed,
       video: video!,
     );
   }
@@ -33,7 +34,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _Logo(
-              onTap: onLogoTap,
+              onTap: onNewVideoPressed,
             ),
             const SizedBox(
               height: 20,
@@ -45,7 +46,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
-  void onLogoTap() async {
+  void onNewVideoPressed() async {
     final video = await ImagePicker().pickVideo(source: ImageSource.gallery);
     if (video != null) {
       setState(() {
